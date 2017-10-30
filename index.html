@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8" />
+		<title>便签</title>
+		<link rel="stylesheet" type="text/css" href="css/index.css" />
+	</head>
+
+	<body>
+		<div class="wrap">
+			<!--<embed src="nizhan.mp3" hidden="true" autostart="true" loop="true">--> 
+			<div class="head">
+				<a>
+					<h1>aTool Sticky </h1>
+					<p>sticky notes for web !</p>
+				</a>
+				<!--增加减少-->
+				<div class="add_de">
+					<div class="add"><img src="img/add.png" /></div>
+					<div class="delete"><img src="img/remove.png" /></div>
+				</div>
+				<!--收缩放大-->
+				<div class="shrink_ex">
+					<div class="shrink"><img src="img/decrease.png" /></div>
+					<div class="expand"><img src="img/increase.png" /></div>
+
+				</div>
+			</div>
+			<div class="main">
+				<!--<div class="common">
+					<div class="delete">
+						<img src="img/delete.png" />
+					</div>
+					<div class="content">
+						<div class="pin">
+							<img src="img/pin.png" />
+						</div>
+						<h2>9/26/2017 13:24 PM</h2>
+						<p>Text here...</p>
+					</div>
+				</div>-->
+			</div>
+		</div>
+		<div class="shadow">
+			<div class="edit">
+				<div class="time">
+					<img src="img/time.png" />&nbsp;&nbsp;<i></i>
+				</div>
+				<input class="text" type="text" name="" id="" value="" />
+				<span><img src="img/deletebig.png"/></span>
+				<em><img src="img/savebig.png"/></em>
+				<textarea class="text"></textarea>
+			</div>
+		</div>
+	</body>
+	<script type="text/javascript">
+		var Add = document.querySelector('.head .add');
+		var Del = document.querySelector('.head .delete');
+		var Shrink = document.querySelector('.head .shrink');
+		var Expand = document.querySelector('.head .expand');
+		var Main = document.querySelector('.main');
+		var Shadow = document.querySelector('.shadow');
+		var nowTime = Shadow.querySelector('.time i');
+		var edittime = Shadow.querySelector('.edit input');
+		var saveTime = document.querySelector('.content h2')
+		var save = Shadow.querySelector('.edit em');
+		var Textarea = Shadow.querySelector('textarea');
+		var on = true;
+		//本地存储
+		var storage=window.localStorage;
+//		localStorage.clear()
+		var localData = storage.getItem("local-data");
+		var data = [];
+		if(localData){
+			data = JSON.parse(localData);
+			//console.log(data);
+		}else{
+			data = [];
+		}
+		// 渲染结构
+		function view(){
+			for(var i = 0;i<data.length;i++){
+				//console.log(storage)
+				add(data[i].time,data[i].text);
+			}
+		}
+		view();
+		// 添加
+		//点击添加便签
+		Add.onclick = function(){
+			//获取当前时间
+			var myDate = new Date;
+			var Time = myDate.toLocaleString();
+			var list = {time:Time,text:'Text here...'};
+			add(list.time,list.text);
+			data.push(list);
+			var storage=window.localStorage;
+			storage.setItem("local-data", JSON.stringify(data));
+		}
+
+		//添加便签
+		function add(time,text) {
+			//添加便签
+			
+			var Common = document.createElement('div');
+			Common.className = 'common';
+			Main.appendChild(Common);
+			//便签上的删除图片
+			var Delete = document.createElement('div');
+			Delete.className = 'delete';
+			Common.appendChild(Delete);
+			Delete.innerHTML = '<img src="img/delete.png" />';
+			//便签盒子
+			var Content = document.createElement('div');
+			Content.className = 'content';
+			Common.appendChild(Content);
+			//便签上的大头针图片
+			var Pin = document.createElement('div');
+			Pin.className = 'pin';
+			Content.appendChild(Pin);
+			Pin.innerHTML = '<img src="img/pin.png" />';
+			//获取当前时间
+			var myDate = new Date;
+			var Time = myDate.toLocaleString();
+			//添加便签的时间
+			var h2 = document.createElement('h2');
+			Content.appendChild(h2);
+			h2.innerHTML = time;
+			nowTime.innerHTML = time;
+			//便签内容
+			var p = document.createElement('p');
+			Content.appendChild(p);
+			p.innerHTML = text;
+			//删除一个便签
+			var cont = document.querySelectorAll('.common .content');
+			for(var i = 0 ; i < cont.length; i++){
+				cont[i].index = i;
+				Delete.onclick = function() {
+					_this = this;
+					console.log(_this)
+					this.parentNode.remove();
+					data.splice(_this,1)
+					localStorage.setItem('local-data', JSON.stringify(data));
+				}
+			}
+			for(var i = 0; i < cont.length ; i ++){
+				cont[i].index = i;
+				//编辑
+				cont[i].onclick = function() {
+					_this = this;
+					Shadow.style.display = 'block';
+					//获取当前时间（编辑时的时间）
+					var myDate = new Date;
+					var Time = myDate.toLocaleString();
+					edittime.value = Time;
+					Textarea.value = data[this.index].text;
+					
+					//保存  localhost本地保存
+					if(!window.localStorage) {
+						alert("浏览器支持localstorage");
+					} else {
+						var storage = window.localStorage;
+						save.onclick = function() {
+							data[_this.index].time = edittime.value;
+							data[_this.index].text = Textarea.value;
+							
+							_this.children[1].innerText = data[_this.index].time;
+							_this.children[2].innerText = data[_this.index].text;
+//							//本地存储字符串
+							localStorage.setItem('local-data', JSON.stringify(data));
+							Shadow.style.display = 'none';
+						}
+					}
+				}
+				//关闭编辑窗口
+				var Span = document.querySelector('.edit span');
+				Span.onclick = function() {
+					Shadow.style.display = 'none';
+				}
+				//清空所有便签
+				Del.onclick = function() {
+					Main.innerHTML = '';
+					data = [];
+					localStorage.setItem('local-data', JSON.stringify(data));
+				}
+			}
+		}
+	</script>
+
+	<!--<div id="uyan_frame"></div>
+	<script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js"></script>-->
+
+</html>
